@@ -9,7 +9,7 @@ Training example based on an intentional data defect in `data/fixture.sql`.
 
 ## Steps to reproduce
 
-1. Group users by `lower(email)`.
+1. Group users by `lower(trim(email))`.
 2. Filter groups with more than one record.
 
 ## Expected result
@@ -24,9 +24,9 @@ The `duplicate_emails` rule reports one duplicate group.
 ## Evidence
 
 ```sql
-SELECT lower(email), COUNT(*)
+SELECT lower(trim(email)), COUNT(*)
 FROM users
-GROUP BY lower(email)
+GROUP BY lower(trim(email))
 HAVING COUNT(*) > 1;
 ```
 

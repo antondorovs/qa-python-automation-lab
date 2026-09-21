@@ -21,7 +21,8 @@ class RuleResult:
 RULES = {
     "duplicate_emails": """
         SELECT COUNT(*) FROM (
-            SELECT email FROM users GROUP BY lower(email) HAVING COUNT(*) > 1
+            SELECT 1 FROM users
+            GROUP BY lower(trim(email)) HAVING COUNT(*) > 1
         )
     """,
     "orphan_orders": """

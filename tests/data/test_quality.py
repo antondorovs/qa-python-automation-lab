@@ -39,3 +39,14 @@ def test_new_bad_order_changes_baseline(fixture_sql: Path) -> None:
     assert results["non_positive_amounts"].actual == BASELINE["non_positive_amounts"] + 1
     assert results["paid_without_payment"].actual == BASELINE["paid_without_payment"] + 1
     assert not results["orphan_orders"].passed
+
+
+@pytest.mark.data
+def test_duplicate_email_with_surrounding_whitespace_changes_baseline(fixture_sql: Path) -> None:
+    with load_fixture(fixture_sql) as connection:
+        connection.execute(
+            "INSERT INTO users VALUES (4, 'Duplicate Brian', ' BRIAN@example.com ')"
+        )
+        results = {result.name: result for result in evaluate_rules(connection)}
+    assert results["duplicate_emails"].actual == BASELINE["duplicate_emails"] + 1
+    assert not results["duplicate_emails"].passed
