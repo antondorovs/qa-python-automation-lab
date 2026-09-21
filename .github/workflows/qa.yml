@@ -1,0 +1,44 @@
+name: Python QA checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  core:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e '.[test]' ruff
+      - run: ruff check .
+      - run: python -m pytest -m 'not ui' --junitxml=qa-report/core.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: core-test-results
+          path: qa-report/
+          if-no-files-found: ignore
+
+  ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e '.[test,ui]'
+      - run: python -m playwright install --with-deps chromium
+      - run: python -m pytest -m ui --junitxml=qa-report/ui.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-test-results
+          path: qa-report/
+          if-no-files-found: ignore

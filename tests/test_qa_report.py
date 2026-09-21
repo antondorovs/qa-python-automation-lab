@@ -1,0 +1,31 @@
+from qa_python_lab.qa_report import QaTestResult, build_summary, render_markdown
+
+
+def test_ready_gate_counts_skipped_separately() -> None:
+    summary = build_summary([
+        QaTestResult("tests/api/test_users.py::test_get", "passed", 12, ("api", "smoke")),
+        QaTestResult("tests/ui/test_home.py::test_home", "skipped", 0, ("ui",)),
+    ])
+    assert summary["executed"] == 1
+    assert summary["pass_rate"] == 100.0
+    assert summary["quality_gate"] == {"status": "ready", "reasons": []}
+    assert "**passed**" in render_markdown(summary)
+
+
+def test_failed_and_interrupted_tests_block_gate() -> None:
+    summary = build_summary([
+        QaTestResult("test_one", "failed", 20, error="assert 1 == 2"),
+        QaTestResult("test_two", "interrupted", 0),
+    ], exit_code=1)
+    assert summary["pass_rate"] == 0.0
+    assert summary["quality_gate"]["status"] == "blocked"
+    assert summary["quality_gate"]["reasons"] == [
+        "1 failed test(s)",
+        "1 interrupted test(s)",
+    ]
+
+
+def test_empty_run_is_blocked() -> None:
+    summary = build_summary([], exit_code=5)
+    assert summary["quality_gate"]["status"] == "blocked"
+    assert "No tests executed" in summary["quality_gate"]["reasons"]

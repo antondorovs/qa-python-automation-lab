@@ -1,0 +1,33 @@
+stages:
+  - validate
+  - test
+
+core-tests:
+  stage: validate
+  image: python:3.12-bookworm
+  script:
+    - python -m pip install -e '.[test]' 'ruff>=0.11,<1'
+    - ruff check .
+    - python -m pytest -m 'not ui' --junitxml=qa-report/core.xml
+  artifacts:
+    when: always
+    paths:
+      - qa-report/
+    reports:
+      junit: qa-report/core.xml
+    expire_in: 14 days
+
+ui-tests:
+  stage: test
+  image: python:3.12-bookworm
+  script:
+    - python -m pip install -e '.[test,ui]'
+    - python -m playwright install --with-deps chromium
+    - python -m pytest -m ui --junitxml=qa-report/ui.xml
+  artifacts:
+    when: always
+    paths:
+      - qa-report/
+    reports:
+      junit: qa-report/ui.xml
+    expire_in: 14 days
