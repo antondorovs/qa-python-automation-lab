@@ -50,3 +50,15 @@ def test_duplicate_email_with_surrounding_whitespace_changes_baseline(fixture_sq
         results = {result.name: result for result in evaluate_rules(connection)}
     assert results["duplicate_emails"].actual == BASELINE["duplicate_emails"] + 1
     assert not results["duplicate_emails"].passed
+
+
+@pytest.mark.data
+def test_unknown_order_status_changes_only_its_rule(fixture_sql: Path) -> None:
+    with load_fixture(fixture_sql) as connection:
+        connection.execute("UPDATE orders SET status = 'UNKNOWN' WHERE id = 3")
+        results = {result.name: result for result in evaluate_rules(connection)}
+    assert results["invalid_order_statuses"].actual == 1
+    assert not results["invalid_order_statuses"].passed
+    assert all(
+        result.passed for name, result in results.items() if name != "invalid_order_statuses"
+    )

@@ -30,6 +30,7 @@ RULES = {
         WHERE u.id IS NULL
     """,
     "non_positive_amounts": "SELECT COUNT(*) FROM orders WHERE amount <= 0",
+    "invalid_order_statuses": "SELECT COUNT(*) FROM orders WHERE status NOT IN ('NEW', 'PAID')",
     "paid_without_payment": """
         SELECT COUNT(*) FROM orders o
         WHERE o.status = 'PAID' AND NOT EXISTS (
@@ -42,6 +43,7 @@ BASELINE = {
     "duplicate_emails": 1,
     "orphan_orders": 1,
     "non_positive_amounts": 1,
+    "invalid_order_statuses": 0,
     "paid_without_payment": 1,
 }
 
