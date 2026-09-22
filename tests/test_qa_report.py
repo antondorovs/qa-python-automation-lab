@@ -29,3 +29,19 @@ def test_empty_run_is_blocked() -> None:
     summary = build_summary([], exit_code=5)
     assert summary["quality_gate"]["status"] == "blocked"
     assert "No tests executed" in summary["quality_gate"]["reasons"]
+
+
+def test_markdown_shows_duration_tags_and_failure_hint() -> None:
+    summary = build_summary([
+        QaTestResult(
+            "tests/api/test_users.py::test_get",
+            "failed",
+            27,
+            ("api", "smoke"),
+            "assert response.status == 200\nAssertionError: got 500\n",
+        ),
+    ])
+    markdown = render_markdown(summary)
+    assert "Duration: 27 ms" in markdown
+    assert "(27 ms; tags: api, smoke)" in markdown
+    assert "Failure: AssertionError: got 500" in markdown

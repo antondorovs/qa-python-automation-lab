@@ -63,6 +63,7 @@ def render_markdown(summary: dict[str, object]) -> str:
         f"Skipped: {summary['skipped']}",
         f"Interrupted: {summary['interrupted']}",
         f"Pass rate: {summary['pass_rate']}%",
+        f"Duration: {summary['duration_ms']} ms",
     ]
     reasons = gate["reasons"]
     if reasons:
@@ -70,8 +71,16 @@ def render_markdown(summary: dict[str, object]) -> str:
         lines.extend(f"- {reason}" for reason in reasons)
     lines.extend(["", "## Tests", ""])
     for result in tests:
+        tags = f"; tags: {', '.join(result['tags'])}" if result["tags"] else ""
         lines.append(
             f"- **{result['status']}** `{result['nodeid']}` "
-            f"({result['duration_ms']} ms)"
+            f"({result['duration_ms']} ms{tags})"
         )
+        if result["error"]:
+            last_line = next(
+                (line.strip() for line in reversed(result["error"].splitlines()) if line.strip()),
+                None,
+            )
+            if last_line:
+                lines.append(f"  - Failure: {last_line}")
     return "\n".join(lines) + "\n"
