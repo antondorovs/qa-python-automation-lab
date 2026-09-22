@@ -42,9 +42,18 @@ def test_create_user_and_read_back(base_url: str) -> None:
 
 
 @pytest.mark.api
-def test_invalid_create_is_rejected(base_url: str) -> None:
+@pytest.mark.parametrize(
+    "payload",
+    [
+        pytest.param({"name": "Carla"}, id="missing-email"),
+        pytest.param({"name": "  ", "email": "carla@example.com"}, id="blank-name"),
+        pytest.param({"name": "Carla", "email": " \t "}, id="blank-email"),
+        pytest.param({"name": "Carla", "email": 42}, id="non-string-email"),
+    ],
+)
+def test_invalid_create_is_rejected(base_url: str, payload: dict[str, object]) -> None:
     client = ApiClient(base_url)
-    response = client.request("POST", "/api/users", {"name": "Carla"})
+    response = client.request("POST", "/api/users", payload)
     assert response.status == 400
     assert response.body == {"error": "name and email are required"}
     assert len(client.request("GET", "/api/users").body) == 2
