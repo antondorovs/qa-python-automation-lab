@@ -31,6 +31,10 @@ RULES = {
     """,
     "non_positive_amounts": "SELECT COUNT(*) FROM orders WHERE amount <= 0",
     "invalid_order_statuses": "SELECT COUNT(*) FROM orders WHERE status NOT IN ('NEW', 'PAID')",
+    "orphan_payments": """
+        SELECT COUNT(*) FROM payments p LEFT JOIN orders o ON o.id = p.order_id
+        WHERE o.id IS NULL
+    """,
     "paid_without_payment": """
         SELECT COUNT(*) FROM orders o
         WHERE o.status = 'PAID' AND NOT EXISTS (
@@ -44,6 +48,7 @@ BASELINE = {
     "orphan_orders": 1,
     "non_positive_amounts": 1,
     "invalid_order_statuses": 0,
+    "orphan_payments": 0,
     "paid_without_payment": 1,
 }
 

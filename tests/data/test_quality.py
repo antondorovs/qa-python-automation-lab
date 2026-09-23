@@ -62,3 +62,13 @@ def test_unknown_order_status_changes_only_its_rule(fixture_sql: Path) -> None:
     assert all(
         result.passed for name, result in results.items() if name != "invalid_order_statuses"
     )
+
+
+@pytest.mark.data
+def test_orphan_payment_changes_only_its_rule(fixture_sql: Path) -> None:
+    with load_fixture(fixture_sql) as connection:
+        connection.execute("INSERT INTO payments VALUES (2, 999, 'SUCCESS')")
+        results = {result.name: result for result in evaluate_rules(connection)}
+    assert results["orphan_payments"].actual == 1
+    assert not results["orphan_payments"].passed
+    assert all(result.passed for name, result in results.items() if name != "orphan_payments")
