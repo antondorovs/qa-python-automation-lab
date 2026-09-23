@@ -8,8 +8,12 @@ def test_ready_gate_counts_skipped_separately() -> None:
     ])
     assert summary["executed"] == 1
     assert summary["pass_rate"] == 100.0
+    assert summary["tag_counts"] == {"api": 1, "smoke": 1, "ui": 1}
     assert summary["quality_gate"] == {"status": "ready", "reasons": []}
-    assert "**passed**" in render_markdown(summary)
+    markdown = render_markdown(summary)
+    assert "## Markers" in markdown
+    assert "- `api`: 1" in markdown
+    assert "**passed**" in markdown
 
 
 def test_failed_and_interrupted_tests_block_gate() -> None:

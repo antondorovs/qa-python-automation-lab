@@ -23,6 +23,10 @@ def build_summary(results: list[QaTestResult], exit_code: int = 0) -> dict[str, 
     )}
     executed = counts["passed"] + counts["failed"] + counts["interrupted"]
     pass_rate = round(100 * counts["passed"] / executed, 2) if executed else 0.0
+    tag_counts = {
+        tag: sum(tag in result.tags for result in results)
+        for tag in sorted({tag for result in results for tag in result.tags})
+    }
     reasons: list[str] = []
     if executed == 0:
         reasons.append("No tests executed")
@@ -42,6 +46,7 @@ def build_summary(results: list[QaTestResult], exit_code: int = 0) -> dict[str, 
         "interrupted": counts["interrupted"],
         "pass_rate": pass_rate,
         "duration_ms": sum(result.duration_ms for result in results),
+        "tag_counts": tag_counts,
         "quality_gate": {"status": "blocked" if reasons else "ready", "reasons": reasons},
         "tests": [asdict(result) for result in results],
     }
@@ -65,6 +70,11 @@ def render_markdown(summary: dict[str, object]) -> str:
         f"Pass rate: {summary['pass_rate']}%",
         f"Duration: {summary['duration_ms']} ms",
     ]
+    tag_counts = summary["tag_counts"]
+    assert isinstance(tag_counts, dict)
+    if tag_counts:
+        lines.extend(["", "## Markers", ""])
+        lines.extend(f"- `{tag}`: {count}" for tag, count in tag_counts.items())
     reasons = gate["reasons"]
     if reasons:
         lines.extend(["", "## Blocking reasons", ""])
