@@ -60,6 +60,18 @@ def test_invalid_create_is_rejected(base_url: str, payload: dict[str, object]) -
 
 
 @pytest.mark.api
+def test_create_user_with_existing_normalized_email_is_rejected(base_url: str) -> None:
+    client = ApiClient(base_url)
+    response = client.request("POST", "/api/users", {
+        "name": "Another Anna",
+        "email": " ANNA@example.com ",
+    })
+    assert response.status == 409
+    assert response.body == {"error": "email already exists"}
+    assert len(client.request("GET", "/api/users").body) == 2
+
+
+@pytest.mark.api
 def test_unknown_route_returns_404(base_url: str) -> None:
     response = ApiClient(base_url).request("GET", "/api/unknown")
     assert response.status == 404

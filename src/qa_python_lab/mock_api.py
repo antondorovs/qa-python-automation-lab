@@ -76,6 +76,10 @@ def _handler_factory() -> type[BaseHTTPRequestHandler]:
             ):
                 self._json(400, {"error": "name and email are required"})
                 return
+            normalized_email = body["email"].strip().lower()
+            if any(item["email"].strip().lower() == normalized_email for item in users):
+                self._json(409, {"error": "email already exists"})
+                return
             user = {
                 "id": max(item["id"] for item in users) + 1,
                 "name": body["name"],
