@@ -23,3 +23,6 @@ Automated coverage: `tests/api/test_users.py::test_invalid_create_is_rejected`.
 The API also rejects an email that already belongs to another user after
 trimming surrounding whitespace and comparing case-insensitively. Automated
 coverage: `tests/api/test_users.py::test_create_user_with_existing_normalized_email_is_rejected`.
+
+It also rejects malformed email values without creating a user. Automated
+coverage: `tests/api/test_users.py::test_create_user_with_malformed_email_is_rejected`.

@@ -63,6 +63,16 @@ def test_invalid_create_is_rejected(base_url: str, payload: dict[str, object]) -
 
 
 @pytest.mark.api
+@pytest.mark.parametrize("email", ["carla.example.com", "@example.com", "carla@"])
+def test_create_user_with_malformed_email_is_rejected(base_url: str, email: str) -> None:
+    client = ApiClient(base_url)
+    response = client.request("POST", "/api/users", {"name": "Carla", "email": email})
+    assert response.status == 400
+    assert response.body == {"error": "valid email is required"}
+    assert len(client.request("GET", "/api/users").body) == 2
+
+
+@pytest.mark.api
 def test_create_user_with_existing_normalized_email_is_rejected(base_url: str) -> None:
     client = ApiClient(base_url)
     response = client.request("POST", "/api/users", {

@@ -77,6 +77,10 @@ def _handler_factory() -> type[BaseHTTPRequestHandler]:
                 self._json(400, {"error": "name and email are required"})
                 return
             normalized_email = body["email"].strip().lower()
+            local_part, separator, domain = normalized_email.partition("@")
+            if not separator or not local_part or not domain or "@" in domain:
+                self._json(400, {"error": "valid email is required"})
+                return
             if any(item["email"].strip().lower() == normalized_email for item in users):
                 self._json(409, {"error": "email already exists"})
                 return
