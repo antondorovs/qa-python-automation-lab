@@ -82,8 +82,8 @@ def _handler_factory() -> type[BaseHTTPRequestHandler]:
                 return
             user = {
                 "id": max(item["id"] for item in users) + 1,
-                "name": body["name"],
-                "email": body["email"],
+                "name": body["name"].strip(),
+                "email": normalized_email,
             }
             users.append(user)
             self._json(201, user)

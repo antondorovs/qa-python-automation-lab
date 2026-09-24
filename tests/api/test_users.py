@@ -35,7 +35,10 @@ def test_list_user_contract(base_url: str) -> None:
 @pytest.mark.contract
 def test_create_user_and_read_back(base_url: str) -> None:
     client = ApiClient(base_url)
-    created = client.request("POST", "/api/users", {"name": "Carla", "email": "carla@example.com"})
+    created = client.request("POST", "/api/users", {
+        "name": " Carla ",
+        "email": " CARLA@example.com ",
+    })
     assert created.status == 201
     assert created.body == {"id": 3, "name": "Carla", "email": "carla@example.com"}
     assert client.request("GET", "/api/users/3").body == created.body
