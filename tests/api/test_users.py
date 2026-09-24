@@ -1,3 +1,7 @@
+import json
+from urllib.error import HTTPError
+from urllib.request import Request, urlopen
+
 import pytest
 
 from qa_python_lab.api_client import ApiClient
@@ -70,6 +74,37 @@ def test_create_user_with_malformed_email_is_rejected(base_url: str, email: str)
     assert response.status == 400
     assert response.body == {"error": "valid email is required"}
     assert len(client.request("GET", "/api/users").body) == 2
+
+
+@pytest.mark.api
+@pytest.mark.parametrize(
+    "body",
+    [
+        pytest.param(b"", id="empty-body"),
+        pytest.param(b'{"name": "Carla",', id="truncated-object"),
+        pytest.param(
+            b'{"name": "Carla", "email": "carla@example.com"} trailing',
+            id="trailing-data",
+        ),
+        pytest.param(b"\xff", id="invalid-utf8"),
+    ],
+)
+def test_malformed_json_is_rejected_without_creating_user(base_url: str, body: bytes) -> None:
+    client = ApiClient(base_url)
+    original_users = client.request("GET", "/api/users").body
+    request = Request(
+        f"{base_url}/api/users",
+        data=body,
+        method="POST",
+        headers={"Content-Type": "application/json"},
+    )
+
+    with pytest.raises(HTTPError) as error:
+        urlopen(request, timeout=5)
+    with error.value as response:
+        assert response.status == 400
+        assert json.load(response) == {"error": "Invalid JSON"}
+    assert client.request("GET", "/api/users").body == original_users
 
 
 @pytest.mark.api
