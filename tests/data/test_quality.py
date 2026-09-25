@@ -84,3 +84,28 @@ def test_unknown_payment_status_changes_only_its_rule(fixture_sql: Path) -> None
     assert all(
         result.passed for name, result in results.items() if name != "invalid_payment_statuses"
     )
+
+
+@pytest.mark.data
+@pytest.mark.parametrize(
+    ("payment_status", "invalid_statuses", "paid_without_payment"),
+    [("SUCCESS", 0, 0), ("PENDING", 1, 1)],
+)
+def test_payment_status_controls_paid_order_coverage(
+    fixture_sql: Path,
+    payment_status: str,
+    invalid_statuses: int,
+    paid_without_payment: int,
+) -> None:
+    with load_fixture(fixture_sql) as connection:
+        connection.execute("INSERT INTO payments VALUES (2, 2, ?)", (payment_status,))
+        results = {result.name: result for result in evaluate_rules(connection)}
+
+    expected = BASELINE | {
+        "invalid_payment_statuses": invalid_statuses,
+        "paid_without_payment": paid_without_payment,
+    }
+    assert {name: result.actual for name, result in results.items()} == expected
+    assert {name: result.passed for name, result in results.items()} == {
+        name: actual == BASELINE[name] for name, actual in expected.items()
+    }
