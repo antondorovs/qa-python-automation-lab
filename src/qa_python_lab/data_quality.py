@@ -35,6 +35,7 @@ RULES = {
         SELECT COUNT(*) FROM payments p LEFT JOIN orders o ON o.id = p.order_id
         WHERE o.id IS NULL
     """,
+    "invalid_payment_statuses": "SELECT COUNT(*) FROM payments WHERE status != 'SUCCESS'",
     "paid_without_payment": """
         SELECT COUNT(*) FROM orders o
         WHERE o.status = 'PAID' AND NOT EXISTS (
@@ -49,6 +50,7 @@ BASELINE = {
     "non_positive_amounts": 1,
     "invalid_order_statuses": 0,
     "orphan_payments": 0,
+    "invalid_payment_statuses": 0,
     "paid_without_payment": 1,
 }
 
